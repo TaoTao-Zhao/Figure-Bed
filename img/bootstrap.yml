@@ -1,0 +1,74 @@
+server:
+  port: 8003
+spring:
+  application:
+    name: enterprise-provider
+  profiles:
+    active: prod
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${middleware.ip}:8848
+      config:
+        server-addr: ${middleware.ip}:8848
+        file-extension: yaml
+        extension-configs:
+          - data-id: dataSource-${spring.profiles.active}.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+          - data-id: redis-${spring.profiles.active}.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+        namespace: goodstrade-${spring.profiles.active}
+        prefix: ${spring.application.name}
+    sentinel:
+      transport:
+        dashboard: ${middleware.ip}:8858
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${middleware.ip}:8848
+            dataId: sentinel-${spring.application.name}
+            groupId: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow
+    alibaba:
+      seata:
+        tx-service-group: my_test_tx_group
+
+beetlsql:
+  basePackage: com.qmhd.enterprise
+  daoSuffix: Mapper
+  nameConversion: org.beetl.sql.core.UnderlinedNameConversion
+  dbStyle: org.beetl.sql.core.db.MySqlStyle
+  sqlPath: /sql
+
+feign:
+  sentinel:
+    enabled: true
+  okhttp:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
+
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    com.alibaba.nacos.client.config.impl: WARN
+
+middleware:
+  ip: 10.203.60.194
+
+seata:
+  config:
+    type: nacos
+    nacos:
+      server-addr: ${middleware.ip}:8848
+      group : "DEFAULT_GROUP"
+      username: "nacos"
+      password: "nacos"
+      namespace: "seata"
